@@ -24,10 +24,10 @@ app.use((req, res, next) => {
 // Вывод данных для таблицы
 app.get("/requests", function(req, res){
     const collection = req.app.locals.collection;
-    collection.find({}).toArray(function(err, requests){
+    collection.find({}).project({number: 1, CompanyName: 1, FIOCarrier: 1, TelephoneCarrier: 1, comment: 1, ATICode: 1}).toArray(
+        function(err, requests){
 
         if(err) return console.log(err);
-        res.he
         res.send(requests)
     });
 });
@@ -83,18 +83,21 @@ app.delete("/requests/:id", function(req, res){
 });
 
 // Редактирование заявки по ID
-app.put("/requests", jsonParser, function(req, res){
+app.put("/requests/:id", jsonParser, function(req, res){
 
     if(!req.body) return res.sendStatus(400);
-    const id = new objectId(req.body.id);
+    const id = new objectId(req.params.id);
+    const requestDate = req.body.date;
+    const requestTime = req.body.time;
+    const requestCompanyName = req.body.CompanyName;
     const requestFIOCarrier = req.body.FIOCarrier;
     const requestTelephoneCarrier = req.body.TelephoneCarrier;
     const requestComment = req.body.comment;
     const requestATICode = req.body.ATICode;
 
     const collection = req.app.locals.collection;
-    collection.findOneAndUpdate({_id: id}, { $set: {FIOCarrier: requestFIOCarrier,
-                TelephoneCarrier: requestTelephoneCarrier, comment: requestComment, ATICode: requestATICode}},
+    collection.findOneAndUpdate({_id: id}, { $set: {date: requestDate, time: requestTime, CompanyName: requestCompanyName,
+        FIOCarrier: requestFIOCarrier, TelephoneCarrier: requestTelephoneCarrier, comment: requestComment, ATICode: requestATICode}},
         {returnOriginal: false },
         function(err, result){
 
