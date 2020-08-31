@@ -24,12 +24,21 @@ app.use((req, res, next) => {
 // Вывод данных для таблицы
 app.get("/requests", function(req, res){
     const collection = req.app.locals.collection;
-    collection.find({}).project({number: 1, CompanyName: 1, FIOCarrier: 1, TelephoneCarrier: 1, comment: 1, ATICode: 1}).toArray(
-        function(err, requests){
-
-        if(err) return console.log(err);
-        res.send(requests)
-    });
+    const q = req.query.q;
+    const query = {};
+    const proj = {number: 1, CompanyName: 1, FIOCarrier: 1, TelephoneCarrier: 1, comment: 1, ATICode: 1};
+    if (q) {
+        const regexp = new RegExp(q);
+        query["$or"] = Object.keys(proj).map(key => {
+            return {[key]: regexp}
+        });
+    }
+    collection.find(query)
+        .project(proj)
+        .toArray(function(err, requests){
+            if(err) return console.log(err);
+            res.send(requests)
+        });
 });
 
 // Вывод всех данных для одной заявки по ID
@@ -106,3 +115,12 @@ app.put("/requests/:id", jsonParser, function(req, res){
             res.send(request);
         });
 });
+
+app.get("/requests/search", function (req,res){
+    const collection = req.app.locals.collection;
+    collection.find({
+        "$or": [{
+            'number': /^\d+$/
+        }]
+    })
+})
